@@ -3,9 +3,9 @@ var http = require("http"),
     fs = require("fs"),
     path = require("path");
 var rootDir = __dirname + "/public";
-var PUBLIC_IP = "192.168.1.36";
+var PUBLIC_IP = "192.168.1.239";
 var PORT;
-var devState = true;
+var devState = false;
 
 var WIDTH = 800, HEIGHT = 800;
 var playerSpeed = 5;
@@ -96,8 +96,10 @@ io.sockets.on('connection', function(socket) {
 
     player.id = socket.id;
     player.position = startPosition;
+    player.scale = {'x': 1, 'y': 1};
 
-    clientData[player.id] = player.position;
+    clientData[player.id] = {'playerPos': player.position,
+                             'playerScale': player.scale};
 
     console.log(socket.id + " has connected");
 
@@ -111,15 +113,17 @@ io.sockets.on('connection', function(socket) {
         delete clients[socket.id];
     });
 
-    socket.on('playerPos', function(data) {
+    socket.on('playerData', function(data) {
         player.position = data.myPos;
+        player.scale = data.myScale;
     });
 
     // runs every 1000/60 milliseconds
     // sends all the clientdata to 
     setInterval(function() {
         if (socket.id in clientData) {
-            clientData[socket.id] = player.position;
+            clientData[socket.id] = {'playerPos': player.position,
+                                     'playerScale': player.scale};
         }
         socket.emit('clientData', {'clientData': clientData});
     }, serverPostSpeed);

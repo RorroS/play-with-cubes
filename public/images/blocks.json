@@ -8,14 +8,23 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":50,"h":50},
 	"sourceSize": {"w":50,"h":50},
 	"pivot": {"x":0.5,"y":0.5}
+},
+"dickbutt.png":
+{
+	"frame": {"x":50,"y":0,"w":50,"h":50},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":50,"h":50},
+	"sourceSize": {"w":50,"h":50},
+	"pivot": {"x":0.5,"y":0.5}
 }},
 "meta": {
 	"app": "http://www.codeandweb.com/texturepacker",
 	"version": "1.0",
 	"image": "blocks.png",
 	"format": "RGBA8888",
-	"size": {"w":50,"h":50},
+	"size": {"w":100,"h":50},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:b4014ab47ab377b61ac3de23f29f72e8:ce9e096967a3e6e052a18d670bd03ae4:b1f1a031cef7856acce3e479bba415bf$"
+	"smartupdate": "$TexturePacker:SmartUpdate:ff69c6ef2398cf66091a04db067b6cdd:0f8d4b246397350c2f5f7aa78eb49233:b1f1a031cef7856acce3e479bba415bf$"
 }
 }

@@ -1,2 +1,5 @@
+/public/images/
+!blocks.png
+!blocks.json
 *.tps
 

@@ -45,7 +45,7 @@ loader
 var playerTexture;
 
 function setup() {
-    playerTexture = TextureCache["cube.png"];
+    playerTexture = TextureCache["dickbutt.png"];
     //Capture the keyboard arrow keys
     var left = keyboard(37),
         up = keyboard(38),
@@ -87,6 +87,10 @@ function setup() {
 
     // Left
     left.press = function() {
+        if (player.scale.x === -1) {
+            player.x -= 50;
+        }
+        player.scale.x = 1;
         player.vx -= 5;
         socket.emit('keyData', {'left': 'down'});
     };
@@ -97,6 +101,10 @@ function setup() {
 
     // Right
     right.press = function() {
+        if (player.scale.x === 1) {
+            player.x += 50;
+        }
+        player.scale.x = -1;
         player.vx += 5;
         socket.emit('keyData', {'right': 'down'});
     };
@@ -180,8 +188,8 @@ function newPlayer(client) {
     if (client != myId) {
         console.log("player " + client + " has connected");
         players[client] = new Sprite(playerTexture);
-        players[client].x = clientData[client].x;
-        players[client].y = clientData[client].y;
+        players[client].x = clientData[client].playerPos.x;
+        players[client].y = clientData[client].playerPos.y;
 
         stage.addChild(players[client]);
     }
@@ -211,17 +219,19 @@ function gameLoop() {
     // loop this function at 60 fps
     requestAnimationFrame(gameLoop);
     containPlayer();
-    if(!collision()) {
-        player.x += player.vx;
-        player.y += player.vy;
-    }
+    //if(!collision()) {
+    player.x += player.vx;
+    player.y += player.vy;
+    //}
 
-    socket.emit('playerPos', {'myPos':{'x':player.x, 'y':player.y}});
+    socket.emit('playerData', {'myPos':{'x':player.x, 'y':player.y},
+                               'myScale': player.scale});
 
     for (var p in players) {
         if (p in clientData && p != myId) {
-            players[p].x = clientData[p].x;
-            players[p].y = clientData[p].y;
+            players[p].x = clientData[p].playerPos.x;
+            players[p].y = clientData[p].playerPos.y;
+            players[p].scale = clientData[p].playerScale;
             renderer.render(stage);
         }
     }
