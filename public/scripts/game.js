@@ -14,6 +14,7 @@ var socket = io.connect();
 var player = new Sprite();
 var boardBackground;
 var WIDTH = 800, HEIGHT = 800;
+var PLAYER_WIDTH = 50, PLAYER_HEIGHT = 50;
 var myId = "";
 var clientData = {};
 var players = {};
@@ -186,14 +187,34 @@ function newPlayer(client) {
     }
 }
 
+function collision() {
+    var collision = false;
+    for (var p in players) {
+        if ((player.x + player.vx >= players[p].x ||
+             player.x + player.vx + PLAYER_WIDTH >= players[p].x) &&
+            (player.x + player.vx <= players[p].x + PLAYER_WIDTH ||
+             player.x + player.vx + PLAYER_WIDTH <= players[p].x + PLAYER_WIDTH )) {
+                if ((player.y + player.vy >= players[p].y ||
+                     player.y + player.vy + PLAYER_HEIGHT >= players[p].y) &&
+                    (player.y + player.vy <= players[p].y + PLAYER_HEIGHT ||
+                     player.y + player.vy + PLAYER_HEIGHT <= players[p].y + PLAYER_HEIGHT )) {
+                collision = true;
+            }
+        }
+    }
+    return collision;
+}
+
 gameLoop();
 function gameLoop() {
 
     // loop this function at 60 fps
     requestAnimationFrame(gameLoop);
     containPlayer();
-    player.x += player.vx;
-    player.y += player.vy;
+    if(!collision()) {
+        player.x += player.vx;
+        player.y += player.vy;
+    }
 
     socket.emit('playerPos', {'myPos':{'x':player.x, 'y':player.y}});
 
