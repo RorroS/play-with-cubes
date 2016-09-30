@@ -15,6 +15,7 @@ var player = new Sprite();
 var boardBackground;
 var WIDTH = 800, HEIGHT = 800;
 var PLAYER_WIDTH = 50, PLAYER_HEIGHT = 50;
+var playerSpeed = 5;
 var myId = "";
 var clientData = {};
 var players = {};
@@ -67,21 +68,21 @@ function setup() {
 
     // Up
     up.press = function() {
-        player.vy -= 5;
+        player.vy -= 1;
         socket.emit('keyData', {'up': 'down'});
     };
     up.release = function() {
-        player.vy += 5;
+        player.vy += 1;
         socket.emit('keyData', {'up': 'up'});
     };
 
     // down
     down.press = function() {
-        player.vy += 5;
+        player.vy += 1;
         socket.emit('keyData', {'down': 'down'});
     };
     down.release = function() {
-        player.vy -= 5;
+        player.vy -= 1;
         socket.emit('keyData', {'down': 'up'});
     };
 
@@ -91,11 +92,11 @@ function setup() {
             player.x -= 50;
         }
         player.scale.x = 1;
-        player.vx -= 5;
+        player.vx -= 1;
         socket.emit('keyData', {'left': 'down'});
     };
     left.release = function() {
-        player.vx += 5;
+        player.vx += 1;
         socket.emit('keyData', {'left': 'up'});
     };
 
@@ -105,19 +106,23 @@ function setup() {
             player.x += 50;
         }
         player.scale.x = -1;
-        player.vx += 5;
+        player.vx += 1;
         socket.emit('keyData', {'right': 'down'});
     };
     right.release = function() {
-        player.vx -= 5;
+        player.vx -= 1;
         socket.emit('keyData', {'right': 'up'});
     };
 
     // Space
     space.press = function() {
+        playerSpeed /= 2;
+        playerSpeed /= 2;
         socket.emit('keyData', {'space': 'down'});
     };
     space.release = function() {
+        playerSpeed *= 2;
+        playerSpeed *= 2;
         socket.emit('keyData', {'space': 'up'});
     };
 
@@ -220,18 +225,20 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
     containPlayer();
     //if(!collision()) {
-    player.x += player.vx;
-    player.y += player.vy;
+    player.x += player.vx * playerSpeed;
+    player.y += player.vy * playerSpeed;
     //}
 
     socket.emit('playerData', {'myPos':{'x':player.x, 'y':player.y},
-                               'myScale': player.scale});
+                               'myScale': player.scale,
+							   'myRotation': player.rotation});
 
     for (var p in players) {
         if (p in clientData && p != myId) {
             players[p].x = clientData[p].playerPos.x;
             players[p].y = clientData[p].playerPos.y;
             players[p].scale = clientData[p].playerScale;
+            players[p].rotation = clientData[p].playerRotation;
             renderer.render(stage);
         }
     }

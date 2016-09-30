@@ -3,7 +3,7 @@ var http = require("http"),
     fs = require("fs"),
     path = require("path");
 var rootDir = __dirname + "/public";
-var PUBLIC_IP = "192.168.1.239";
+var PUBLIC_IP = "192.168.0.101";
 var PORT;
 var devState = false;
 
@@ -40,6 +40,7 @@ var server = http.createServer(function(request, response) {
                 response.writeHead(200, {'content-type': 'text/html'});
                 response.write(data, "utf-8");
             }
+            response.end(data);
         });
     }
     else {
@@ -59,7 +60,7 @@ var server = http.createServer(function(request, response) {
                         response.writeHead(200, {'Content-Type': 'text/html'});
                         response.write(data);
                     }
-                    response.end();
+                    response.end(data);
                 });
             }
             else {
@@ -97,9 +98,11 @@ io.sockets.on('connection', function(socket) {
     player.id = socket.id;
     player.position = startPosition;
     player.scale = {'x': 1, 'y': 1};
+	player.rotation = 0;
 
     clientData[player.id] = {'playerPos': player.position,
-                             'playerScale': player.scale};
+                             'playerScale': player.scale,
+							 'playerRotation': player.rotation};
 
     console.log(socket.id + " has connected");
 
@@ -116,6 +119,7 @@ io.sockets.on('connection', function(socket) {
     socket.on('playerData', function(data) {
         player.position = data.myPos;
         player.scale = data.myScale;
+		player.rotation = data.myRotation;
     });
 
     // runs every 1000/60 milliseconds
@@ -123,7 +127,8 @@ io.sockets.on('connection', function(socket) {
     setInterval(function() {
         if (socket.id in clientData) {
             clientData[socket.id] = {'playerPos': player.position,
-                                     'playerScale': player.scale};
+                                     'playerScale': player.scale,
+									 'playerRotation': player.rotation};
         }
         socket.emit('clientData', {'clientData': clientData});
     }, serverPostSpeed);
@@ -181,6 +186,6 @@ function runServer(devState) {
     else {
         PORT = 8001;
         server.listen(PORT, PUBLIC_IP);
-        console.log("Server running public on " + PUBLIC_IP + ":" + PORT);
+        console.log("Server running public on 81.170.152.58:" + PORT);
     }
 }
