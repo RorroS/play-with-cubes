@@ -5,9 +5,9 @@ var http = require("http"),
 var rootDir = __dirname + "/public";
 var PUBLIC_IP = "192.168.1.239";
 var PORT;
-var devState = false;
+var devState = true;
 
-var WIDTH = 800, HEIGHT = 800;
+var WIDTH = 500, HEIGHT = 500;
 var playerSpeed = 5;
 var PLAYER_WIDTH = 50, PLAYER_HEIGHT = 50;
 

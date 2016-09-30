@@ -13,7 +13,7 @@ var socket = io.connect();
 
 var player = new Sprite();
 var boardBackground;
-var WIDTH = 800, HEIGHT = 800;
+var WIDTH = 500, HEIGHT = 500;
 var PLAYER_WIDTH = 50, PLAYER_HEIGHT = 50;
 var myId = "";
 var clientData = {};
@@ -30,7 +30,7 @@ var renderer = autoDetectRenderer(
 renderer.backgroundColor = 0x061639;
 
 // add the canvas to the HTML document
-document.body.appendChild(renderer.view);
+document.getElementById("game").appendChild(renderer.view);
 
 // create a container object called the 'stage'
 var stage = new Container();
