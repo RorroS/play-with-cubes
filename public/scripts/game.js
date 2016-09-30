@@ -89,9 +89,9 @@ function setup() {
     // Left
     left.press = function() {
         if (player.scale.x === -1) {
-            player.x -= 50;
+            player.scale.x = 1;
+            player.x -= PLAYER_WIDTH;
         }
-        player.scale.x = 1;
         player.vx -= 1;
         socket.emit('keyData', {'left': 'down'});
     };
@@ -103,9 +103,9 @@ function setup() {
     // Right
     right.press = function() {
         if (player.scale.x === 1) {
-            player.x += 50;
+            player.scale.x = -1;
+            player.x += PLAYER_WIDTH;
         }
-        player.scale.x = -1;
         player.vx += 1;
         socket.emit('keyData', {'right': 'down'});
     };
@@ -168,24 +168,33 @@ function keyboard(keyCode) {
 }
 
 function containPlayer() {
-    // left
-    if (player.x <= 0) {
-        player.x = 0;
-    }
-
-    // top
+    // check for y
     if (player.y <= 0) {
         player.y = 0;
     }
-
-    // right
-    if (player.x + player.width >= WIDTH) {
-        player.x = WIDTH - player.width;
+    else if (player.y + PLAYER_HEIGHT >= HEIGHT) {
+        player.y = HEIGHT - PLAYER_HEIGHT;
     }
 
-    // bottom
-    if (player.y + player.height >= HEIGHT) {
-        player.y = HEIGHT - player.height;
+    if (player.scale.x === 1) {
+        if (player.x <= 0) {
+            player.x = 0;
+        }
+        else if (player.x + PLAYER_WIDTH >= WIDTH) {
+            player.x = WIDTH - PLAYER_WIDTH;
+        }
+
+    }
+
+    if (player.scale.x === -1) {
+        // check left side
+        if (player.x - PLAYER_WIDTH <= 0) {
+            player.x = PLAYER_WIDTH;
+        }
+        // check right side
+        else if (player.x >= WIDTH) {
+            player.x = WIDTH;
+        }
     }
 }
 
