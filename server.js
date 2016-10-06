@@ -201,7 +201,7 @@ function runServer(devState) {
     else {
         PORT = 8001;
         server.listen(PORT, PUBLIC_IP);
-        console.log("Server running public on 81.170.152.58:" + PORT);
+        console.log("Server running public on port: " + PORT);
     }
 }
 
