@@ -193,7 +193,7 @@ function containPlayer() {
         }
         // check right side
         else if (player.x >= WIDTH) {
-            player.x = WIDTH;
+            player.x = WIDTH ;
         }
     }
 }
@@ -279,4 +279,8 @@ socket.on('startPosision', function(data) {
 socket.on('updateId', function(data) {
     myId = data.myId;
     console.log("myID: " + myId);
+});
+
+socket.on("mapData", function(data) {
+    console.log("recieved mapdata");
 });

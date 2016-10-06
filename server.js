@@ -1,7 +1,8 @@
 var http = require("http"),
     url = require("url"),
     fs = require("fs"),
-    path = require("path");
+    path = require("path"),
+    Promise = require("bluebird");
 var rootDir = __dirname + "/public";
 var PUBLIC_IP = "192.168.0.101";
 var PORT;
@@ -82,6 +83,16 @@ runServer(devState);
 var clients = {};
 var clientData = {};
 
+var readFile = Promise.promisify(fs.readFile);
+
+function parseFile(mapData) {
+    var jsonData = JSON.parse(mapData).layers[0].data;
+    var joinedData = jsonData.join('');
+    console.log("Mapdata parsed");
+    return joinedData;
+}
+var resultPromise = readFile("testmap.json").then(parseFile);
+
 // use socket.io
 var io = require("socket.io").listen(server);
 
@@ -98,17 +109,21 @@ io.sockets.on('connection', function(socket) {
     player.id = socket.id;
     player.position = startPosition;
     player.scale = {'x': 1, 'y': 1};
-	player.rotation = 0;
+	  player.rotation = 0;
 
     clientData[player.id] = {'playerPos': player.position,
                              'playerScale': player.scale,
-							 'playerRotation': player.rotation};
+							               'playerRotation': player.rotation};
 
     console.log(socket.id + " has connected");
 
     socket.emit('updateId', {'myId': socket.id});
     socket.emit('startPosision', {'startPosition': startPosition});
     socket.emit('clientData', {'clientData': clientData});
+    resultPromise.then(function(mapData) {
+        socket.emit("mapData", {'mapData': mapData});
+        console.log("Mapdata sent");
+    });
 
     socket.on('disconnect', function() {
         console.log(socket.id + " has disconnected");
@@ -189,3 +204,4 @@ function runServer(devState) {
         console.log("Server running public on 81.170.152.58:" + PORT);
     }
 }
+
