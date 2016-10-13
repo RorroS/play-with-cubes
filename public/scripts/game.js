@@ -15,10 +15,12 @@ var player = new Sprite();
 var boardBackground;
 var WIDTH = 500, HEIGHT = 500;
 var PLAYER_WIDTH = 50, PLAYER_HEIGHT = 50;
+var WALL_HEIGHT = 10, WALL_WIDTH = 10;
 var playerSpeed = 5;
 var myId = "";
 var clientData = {};
 var players = {};
+var mapWalls = [];
 var startPosition = {'x': WIDTH/2 - player.width/2, 'y': HEIGHT/2 - player.height/2};
 
 // create renderer
@@ -42,11 +44,16 @@ renderer.render(stage);
 // load images
 loader
     .add("images/blocks.json")
-    .load(setup);
+    .load(setup)
+    .load(setupMap);
+
 var playerTexture;
+var wallTexture;
 
 function setup() {
-    playerTexture = TextureCache["dickbutt.png"];
+    playerTexture = TextureCache["cube.png"];
+    wallTexture = TextureCache["wall.png"];
+
     //Capture the keyboard arrow keys
     var left = keyboard(37),
         up = keyboard(38),
@@ -169,31 +176,31 @@ function keyboard(keyCode) {
 
 function containPlayer() {
     // check for y
-    if (player.y <= 0) {
-        player.y = 0;
+    if (player.y <= WALL_HEIGHT) {
+        player.y = WALL_HEIGHT;
     }
-    else if (player.y + PLAYER_HEIGHT >= HEIGHT) {
-        player.y = HEIGHT - PLAYER_HEIGHT;
+    else if (player.y + PLAYER_HEIGHT >= HEIGHT - WALL_HEIGHT) {
+        player.y = HEIGHT - PLAYER_HEIGHT - WALL_HEIGHT;
     }
 
     if (player.scale.x === 1) {
-        if (player.x <= 0) {
-            player.x = 0;
+        if (player.x <= WALL_WIDTH) {
+            player.x = WALL_WIDTH;
         }
-        else if (player.x + PLAYER_WIDTH >= WIDTH) {
-            player.x = WIDTH - PLAYER_WIDTH;
+        else if (player.x + PLAYER_WIDTH >= WIDTH - WALL_WIDTH) {
+            player.x = WIDTH - PLAYER_WIDTH - WALL_WIDTH;
         }
 
     }
 
     if (player.scale.x === -1) {
         // check left side
-        if (player.x - PLAYER_WIDTH <= 0) {
-            player.x = PLAYER_WIDTH;
+        if (player.x - PLAYER_WIDTH <= WALL_WIDTH) {
+            player.x = PLAYER_WIDTH + WALL_WIDTH;
         }
         // check right side
-        else if (player.x >= WIDTH) {
-            player.x = WIDTH ;
+        else if (player.x >= WIDTH - WALL_WIDTH) {
+            player.x = WIDTH - WALL_WIDTH;
         }
     }
 }
@@ -207,6 +214,16 @@ function newPlayer(client) {
 
         stage.addChild(players[client]);
     }
+}
+
+function setupMap() {
+    for (var wallTile in mapWalls) {
+        var wall = new Sprite(wallTexture);
+        wall.x = mapWalls[wallTile][0];
+        wall.y = mapWalls[wallTile][1];
+        stage.addChild(wall);
+    }
+    renderer.render(stage);
 }
 
 function collision() {
@@ -282,5 +299,13 @@ socket.on('updateId', function(data) {
 });
 
 socket.on("mapData", function(data) {
-    console.log("recieved mapdata");
+    for (var tile = 0; tile < 2500; tile++) {
+        var x = tile % 50;
+        var y = Math.floor(tile/50);
+
+        if (data.mapData.charAt(tile) == "1") {
+            mapWalls.push([x*10,y*10]);
+        }
+    }
+
 });

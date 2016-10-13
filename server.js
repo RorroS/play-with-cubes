@@ -83,15 +83,19 @@ runServer(devState);
 var clients = {};
 var clientData = {};
 
+var banData = "";
 var readFile = Promise.promisify(fs.readFile);
 
 function parseFile(mapData) {
     var jsonData = JSON.parse(mapData).layers[0].data;
     var joinedData = jsonData.join('');
     console.log("Mapdata parsed");
-    return joinedData;
+    return joinedData.toString();
 }
 var resultPromise = readFile("testmap.json").then(parseFile);
+resultPromise.then(function(mapData) {
+    banData = mapData;
+});
 
 // use socket.io
 var io = require("socket.io").listen(server);
@@ -120,10 +124,7 @@ io.sockets.on('connection', function(socket) {
     socket.emit('updateId', {'myId': socket.id});
     socket.emit('startPosision', {'startPosition': startPosition});
     socket.emit('clientData', {'clientData': clientData});
-    resultPromise.then(function(mapData) {
-        socket.emit("mapData", {'mapData': mapData});
-        console.log("Mapdata sent");
-    });
+    sendMapData(socket, banData);
 
     socket.on('disconnect', function() {
         console.log(socket.id + " has disconnected");
@@ -203,5 +204,10 @@ function runServer(devState) {
         server.listen(PORT, PUBLIC_IP);
         console.log("Server running public on port: " + PORT);
     }
+}
+
+function sendMapData(socket, banData) {
+    socket.emit("mapData", {'mapData': banData});
+    console.log("Sending mapdata...");
 }
 
