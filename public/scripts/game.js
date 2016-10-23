@@ -14,14 +14,13 @@ var socket = io.connect();
 var player = new Sprite();
 var boardBackground;
 var WIDTH = 500, HEIGHT = 500;
-var PLAYER_WIDTH = 50, PLAYER_HEIGHT = 50;
+var PLAYER_WIDTH = 10, PLAYER_HEIGHT = 10;
 var WALL_HEIGHT = 10, WALL_WIDTH = 10;
-var playerSpeed = 5;
 var myId = "";
 var clientData = {};
 var players = {};
 var mapWalls = [];
-var startPosition = {'x': WIDTH/2 - player.width/2, 'y': HEIGHT/2 - player.height/2};
+var spawnX, spawnY;
 
 // create renderer
 var renderer = autoDetectRenderer(
@@ -45,7 +44,8 @@ renderer.render(stage);
 loader
     .add("images/blocks.json")
     .load(setup)
-    .load(setupMap);
+    .load(setupMap)
+    .load(spawnPlayer);
 
 var playerTexture;
 var wallTexture;
@@ -60,13 +60,6 @@ function setup() {
         right = keyboard(39),
         down = keyboard(40),
         space = keyboard(32);
-
-    player.texture = playerTexture;
-    player.x = startPosition.x;
-    player.y = startPosition.y;
-    player.vx = 0;
-    player.vy = 0;
-    stage.addChild(player);
 
     for (var p in players) {
         newPlayer(p);
@@ -123,13 +116,13 @@ function setup() {
 
     // Space
     space.press = function() {
-        playerSpeed /= 2;
-        playerSpeed /= 2;
+        player.speed /= 2;
+        player.speed /= 2;
         socket.emit('keyData', {'space': 'down'});
     };
     space.release = function() {
-        playerSpeed *= 2;
-        playerSpeed *= 2;
+        player.speed *= 2;
+        player.speed *= 2;
         socket.emit('keyData', {'space': 'up'});
     };
 
@@ -226,22 +219,86 @@ function setupMap() {
     renderer.render(stage);
 }
 
-function collision() {
-    var collision = false;
-    for (var p in players) {
-        if ((player.x + player.vx >= players[p].x ||
-             player.x + player.vx + PLAYER_WIDTH >= players[p].x) &&
-            (player.x + player.vx <= players[p].x + PLAYER_WIDTH ||
-             player.x + player.vx + PLAYER_WIDTH <= players[p].x + PLAYER_WIDTH )) {
-                if ((player.y + player.vy >= players[p].y ||
-                     player.y + player.vy + PLAYER_HEIGHT >= players[p].y) &&
-                    (player.y + player.vy <= players[p].y + PLAYER_HEIGHT ||
-                     player.y + player.vy + PLAYER_HEIGHT <= players[p].y + PLAYER_HEIGHT )) {
-                collision = true;
+function wallCollision() {
+    var collision = "";
+    for (var wallTile in mapWalls) {
+        var wallX = mapWalls[wallTile][0];
+        var wallY = mapWalls[wallTile][1];
+
+        // player incoming from the right side of the wall
+        if (player.x >= wallX + WALL_WIDTH &&
+            player.x + player.vx <= wallX + WALL_WIDTH) {
+
+            // top of player
+            if (player.y >= wallY && player.y <= wallY + WALL_HEIGHT) {
+                collision = "LEFT";
+            }
+            // bottom of player
+            else if (player.y + PLAYER_HEIGHT >= wallY &&
+                     player.y + PLAYER_HEIGHT <= wallY + WALL_HEIGHT) {
+                collision = "LEFT";
+            }
+        }
+
+        // player incoming from the left side of the wall
+        else if (player.x + PLAYER_WIDTH <= wallX &&
+                 player.x + PLAYER_WIDTH + player.vx >= wallX) {
+
+            // top of player
+            if (player.y >= wallY && player.y <= wallY + WALL_HEIGHT) {
+                collision = "RIGHT";
+            }
+
+            // bottom of player
+            else if (player.y + PLAYER_HEIGHT >= wallY &&
+                     player.y + PLAYER_HEIGHT <= wallY + WALL_HEIGHT) {
+                collision = "RIGHT";
+            }
+        }
+
+        // player incoming from the top of the wall
+        else if (player.y + PLAYER_HEIGHT <= wallY &&
+                 player.y + PLAYER_HEIGHT + player.vy >= wallY) {
+
+            // left side of the player
+            if (player.x >= wallX && player.x <= wallX + WALL_WIDTH) {
+                collision = "TOP";
+            }
+
+            // right side of player
+            else if (player.x + PLAYER_WIDTH >= wallX &&
+                     player.x + PLAYER_WIDTH <= wallX + WALL_WIDTH) {
+                collision = "TOP";
+            }
+        }
+
+        // player incoming from the bottom of the wall
+        else if (player.y >= wallY + WALL_HEIGHT &&
+                 player.y + player.vy <= wallY + WALL_HEIGHT) {
+
+            // left side of the player
+            if (player.x >= wallX && player.x <= wallX + WALL_WIDTH) {
+                collision = "BOTTOM";
+            }
+
+            // right side of player
+            else if (player.x + PLAYER_WIDTH >= wallX &&
+                     player.x + PLAYER_WIDTH <= wallX + WALL_WIDTH) {
+                collision = "BOTTOM";
             }
         }
     }
     return collision;
+}
+
+function spawnPlayer() {
+    player.texture = playerTexture;
+    player.x = spawnX;
+    player.y = spawnY;
+    player.vx = 0;
+    player.vy = 0;
+    player.speed = 2;
+    stage.addChild(player);
 }
 
 gameLoop();
@@ -250,14 +307,28 @@ function gameLoop() {
     // loop this function at 60 fps
     requestAnimationFrame(gameLoop);
     containPlayer();
-    //if(!collision()) {
-    player.x += player.vx * playerSpeed;
-    player.y += player.vy * playerSpeed;
-    //}
+    switch(wallCollision()) {
+    case "TOP":
+        player.y -= PLAYER_HEIGHT/2;
+        break;
+    case "BOTTOM":
+        player.y += PLAYER_HEIGHT/2;
+        break;
+    case "RIGHT":
+        player.x -= PLAYER_WIDTH/2;
+        break;
+    case "LEFT":
+        player.x += PLAYER_WIDTH/2;
+        break;
+    default:
+        break;
+    }
+    player.x += player.vx * player.speed;
+    player.y += player.vy * player.speed;
 
     socket.emit('playerData', {'myPos':{'x':player.x, 'y':player.y},
                                'myScale': player.scale,
-							   'myRotation': player.rotation});
+							                 'myRotation': player.rotation});
 
     for (var p in players) {
         if (p in clientData && p != myId) {
@@ -289,10 +360,6 @@ socket.on('clientData', function(data) {
     }
 });
 
-socket.on('startPosision', function(data) {
-    startPosition = data.startPosition;
-});
-
 socket.on('updateId', function(data) {
     myId = data.myId;
     console.log("myID: " + myId);
@@ -303,8 +370,13 @@ socket.on("mapData", function(data) {
         var x = tile % 50;
         var y = Math.floor(tile/50);
 
+        if (data.mapData.charAt(tile) == "2") {
+            spawnX = x * WALL_WIDTH;
+            spawnY = y * WALL_HEIGHT;
+        }
+
         if (data.mapData.charAt(tile) == "1") {
-            mapWalls.push([x*10,y*10]);
+            mapWalls.push([x*WALL_WIDTH,y*WALL_HEIGHT]);
         }
     }
 

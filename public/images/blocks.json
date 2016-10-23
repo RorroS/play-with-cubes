@@ -2,25 +2,25 @@
 
 "cube.png":
 {
-	"frame": {"x":0,"y":0,"w":50,"h":50},
+	"frame": {"x":0,"y":0,"w":10,"h":10},
 	"rotated": false,
 	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":50,"h":50},
-	"sourceSize": {"w":50,"h":50},
+	"spriteSourceSize": {"x":0,"y":0,"w":10,"h":10},
+	"sourceSize": {"w":10,"h":10},
 	"pivot": {"x":0.5,"y":0.5}
 },
 "dickbutt.png":
 {
-	"frame": {"x":50,"y":0,"w":50,"h":50},
+	"frame": {"x":10,"y":0,"w":10,"h":10},
 	"rotated": false,
 	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":50,"h":50},
-	"sourceSize": {"w":50,"h":50},
+	"spriteSourceSize": {"x":0,"y":0,"w":10,"h":10},
+	"sourceSize": {"w":10,"h":10},
 	"pivot": {"x":0.5,"y":0.5}
 },
 "wall.png":
 {
-	"frame": {"x":100,"y":0,"w":10,"h":10},
+	"frame": {"x":20,"y":0,"w":10,"h":10},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":10,"h":10},
@@ -32,8 +32,8 @@
 	"version": "1.0",
 	"image": "blocks.png",
 	"format": "RGBA8888",
-	"size": {"w":110,"h":50},
+	"size": {"w":30,"h":10},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:66871d249785d0a5625502165c1cd173:634fad71adef6cbd90d90763aa185720:b1f1a031cef7856acce3e479bba415bf$"
+	"smartupdate": "$TexturePacker:SmartUpdate:3dabfb91756cf93c9aa6df78b40e5849:537963a11814e6af77abe95aa861d3b1:b1f1a031cef7856acce3e479bba415bf$"
 }
 }

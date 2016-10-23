@@ -10,7 +10,7 @@ var devState = true;
 
 var WIDTH = 500, HEIGHT = 500;
 var playerSpeed = 5;
-var PLAYER_WIDTH = 50, PLAYER_HEIGHT = 50;
+var PLAYER_WIDTH = 10, PLAYER_HEIGHT = 10;
 
 var serverPostSpeed = 1000/60;
 
@@ -105,13 +105,9 @@ io.sockets.on('connection', function(socket) {
     clients[socket.id] = socket;
 
     var player = {};
-    var startPosition = {'x': WIDTH/2 - PLAYER_WIDTH/2, 'y': HEIGHT/2 - PLAYER_HEIGHT/2};
-
-    player.x = startPosition.x;
-    player.y = startPosition.y;
 
     player.id = socket.id;
-    player.position = startPosition;
+    player.position = {'x': 0, 'y':15};
     player.scale = {'x': 1, 'y': 1};
 	  player.rotation = 0;
 
@@ -122,9 +118,8 @@ io.sockets.on('connection', function(socket) {
     console.log(socket.id + " has connected");
 
     socket.emit('updateId', {'myId': socket.id});
-    socket.emit('startPosision', {'startPosition': startPosition});
     socket.emit('clientData', {'clientData': clientData});
-    sendMapData(socket, banData);
+    socket.emit("mapData", {'mapData': banData});
 
     socket.on('disconnect', function() {
         console.log(socket.id + " has disconnected");
@@ -135,11 +130,11 @@ io.sockets.on('connection', function(socket) {
     socket.on('playerData', function(data) {
         player.position = data.myPos;
         player.scale = data.myScale;
-		player.rotation = data.myRotation;
+		    player.rotation = data.myRotation;
     });
 
     // runs every 1000/60 milliseconds
-    // sends all the clientdata to 
+    // sends all the clientdata to
     setInterval(function() {
         if (socket.id in clientData) {
             clientData[socket.id] = {'playerPos': player.position,
@@ -205,9 +200,3 @@ function runServer(devState) {
         console.log("Server running public on port: " + PORT);
     }
 }
-
-function sendMapData(socket, banData) {
-    socket.emit("mapData", {'mapData': banData});
-    console.log("Sending mapdata...");
-}
-
