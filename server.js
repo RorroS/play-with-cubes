@@ -92,7 +92,7 @@ function parseFile(mapData) {
     console.log("Mapdata parsed");
     return joinedData.toString();
 }
-var resultPromise = readFile("testmap.json").then(parseFile);
+var resultPromise = readFile("maps/testmap.json").then(parseFile);
 resultPromise.then(function(mapData) {
     banData = mapData;
 });

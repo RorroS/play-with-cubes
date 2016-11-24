@@ -35,11 +35,11 @@
             {
              "0":
                 {
-                 "image":"public\/images\/wall.png"
+                 "image":"../public\/images\/wall.png"
                 },
              "1":
                 {
-                 "image":"public\/images\/spawn.png"
+                 "image":"../public\/images\/spawn.png"
                 }
             },
          "tilewidth":10

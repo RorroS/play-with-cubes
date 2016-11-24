@@ -13,7 +13,7 @@ var socket = io.connect();
 
 var player = new Sprite();
 var boardBackground;
-var WIDTH = 500, HEIGHT = 500;
+var WIDTH = 800, HEIGHT = 500;
 var PLAYER_WIDTH = 10, PLAYER_HEIGHT = 10;
 var WALL_HEIGHT = 10, WALL_WIDTH = 10;
 var myId = "";
@@ -27,6 +27,9 @@ var renderer = autoDetectRenderer(
     WIDTH, HEIGHT,
     {antialias: false, transparent: false, resolution: 1}
 );
+
+// set EZGUI renderer
+EZGUI.renderer = renderer;
 
 // background color of stage
 renderer.backgroundColor = 0x061639;
@@ -50,9 +53,18 @@ loader
 var playerTexture;
 var wallTexture;
 
+
 function setup() {
     playerTexture = TextureCache["cube.png"];
     wallTexture = TextureCache["wall.png"];
+
+    // PIXI text
+    //var input = new PIXI.Input();
+    //input.x = 10;
+    //input.y = 10;
+    //console.log(input.value);
+    //stage.addChild(input);
+
 
     //Capture the keyboard arrow keys
     var left = keyboard(37),
@@ -65,6 +77,58 @@ function setup() {
         newPlayer(p);
     }
 
+    var guiObj = {
+        id: 'myWindow',
+
+        component: 'Window',
+
+        padding: 4,
+
+        //component position relative to parent
+        position: { x: 510, y: 10 },
+
+
+        width: 280,
+        height: 480,
+
+        layout:[1,3],
+        children: [
+            null,
+            {
+                id: 'myInput',
+                text: '',
+                component: 'Input',
+                position: 'center',
+                width: 150,
+                height: 50
+            },
+            {
+                id: 'btn1',
+                text: 'Get Text Value',
+                component: 'Button',
+                position: 'center',
+                width: 150,
+                height: 50
+            }
+        ]
+    };
+
+
+    EZGUI.Theme.load(['assets/kenney-theme/kenney-theme.json'], function () {
+
+
+        //create the gui
+        //the second parameter is the theme name, see kenney-theme.json, the name is defined under __config__ field
+        var guiElt = EZGUI.create(guiObj, 'kenney');
+
+        EZGUI.components.btn1.on('click', function (event) {
+            alert(EZGUI.components.myInput.text);
+        });
+
+
+        stage.addChild(guiElt);
+
+    });
 
     // Up
     up.press = function() {
@@ -144,7 +208,6 @@ function keyboard(keyCode) {
             key.isDown = true;
             key.isUp = false;
         }
-        event.preventDefault();
     };
 
     //The `upHandler`
@@ -154,7 +217,6 @@ function keyboard(keyCode) {
             key.isDown = false;
             key.isUp = true;
         }
-        event.preventDefault();
     };
 
     //Attach event listeners
@@ -168,34 +230,40 @@ function keyboard(keyCode) {
 }
 
 function containPlayer() {
+    var collision = false;
     // check for y
-    if (player.y <= WALL_HEIGHT) {
-        player.y = WALL_HEIGHT;
+    if (player.y + player.vy < WALL_HEIGHT) {
+        //top
+        collision = true;
     }
-    else if (player.y + PLAYER_HEIGHT >= HEIGHT - WALL_HEIGHT) {
-        player.y = HEIGHT - PLAYER_HEIGHT - WALL_HEIGHT;
+    else if (player.y + player.vy + PLAYER_HEIGHT > HEIGHT - WALL_HEIGHT) {
+        // bottom
+        collision = true;
     }
 
     if (player.scale.x === 1) {
-        if (player.x <= WALL_WIDTH) {
-            player.x = WALL_WIDTH;
+        if (player.x + player.vx < WALL_WIDTH) {
+            //left
+            collision = true;
         }
-        else if (player.x + PLAYER_WIDTH >= WIDTH - WALL_WIDTH) {
-            player.x = WIDTH - PLAYER_WIDTH - WALL_WIDTH;
+        else if (player.x + player.vx + PLAYER_WIDTH > WIDTH - WALL_WIDTH) {
+            // right
+            collision = true;
         }
 
     }
 
     if (player.scale.x === -1) {
-        // check left side
-        if (player.x - PLAYER_WIDTH <= WALL_WIDTH) {
-            player.x = PLAYER_WIDTH + WALL_WIDTH;
+        if (player.x + player.vx - PLAYER_WIDTH < WALL_WIDTH) {
+            // left
+            collision = true;
         }
-        // check right side
-        else if (player.x >= WIDTH - WALL_WIDTH) {
-            player.x = WIDTH - WALL_WIDTH;
+        else if (player.x + player.vx > WIDTH - WALL_WIDTH) {
+            // right
+            collision = true;
         }
     }
+    return collision;
 }
 
 function newPlayer(client) {
@@ -220,7 +288,7 @@ function setupMap() {
 }
 
 function wallCollision() {
-    var collision = "";
+    var collision = false;
     for (var wallTile in mapWalls) {
         var wallX = mapWalls[wallTile][0];
         var wallY = mapWalls[wallTile][1];
@@ -231,12 +299,12 @@ function wallCollision() {
 
             // top of player
             if (player.y >= wallY && player.y <= wallY + WALL_HEIGHT) {
-                collision = "LEFT";
+                collision = true;
             }
             // bottom of player
             else if (player.y + PLAYER_HEIGHT >= wallY &&
                      player.y + PLAYER_HEIGHT <= wallY + WALL_HEIGHT) {
-                collision = "LEFT";
+                collision = true;
             }
         }
 
@@ -246,13 +314,13 @@ function wallCollision() {
 
             // top of player
             if (player.y >= wallY && player.y <= wallY + WALL_HEIGHT) {
-                collision = "RIGHT";
+                collision = true;
             }
 
             // bottom of player
             else if (player.y + PLAYER_HEIGHT >= wallY &&
                      player.y + PLAYER_HEIGHT <= wallY + WALL_HEIGHT) {
-                collision = "RIGHT";
+                collision = true;
             }
         }
 
@@ -262,13 +330,13 @@ function wallCollision() {
 
             // left side of the player
             if (player.x >= wallX && player.x <= wallX + WALL_WIDTH) {
-                collision = "TOP";
+                collision = true;
             }
 
             // right side of player
             else if (player.x + PLAYER_WIDTH >= wallX &&
                      player.x + PLAYER_WIDTH <= wallX + WALL_WIDTH) {
-                collision = "TOP";
+                collision = true;
             }
         }
 
@@ -278,13 +346,13 @@ function wallCollision() {
 
             // left side of the player
             if (player.x >= wallX && player.x <= wallX + WALL_WIDTH) {
-                collision = "BOTTOM";
+                collision = true;
             }
 
             // right side of player
             else if (player.x + PLAYER_WIDTH >= wallX &&
                      player.x + PLAYER_WIDTH <= wallX + WALL_WIDTH) {
-                collision = "BOTTOM";
+                collision = true;
             }
         }
     }
@@ -304,28 +372,12 @@ function spawnPlayer() {
 gameLoop();
 function gameLoop() {
 
-    // loop this function at 60 fps
-    requestAnimationFrame(gameLoop);
-    containPlayer();
-    switch(wallCollision()) {
-    case "TOP":
-        player.y -= PLAYER_HEIGHT/2;
-        break;
-    case "BOTTOM":
-        player.y += PLAYER_HEIGHT/2;
-        break;
-    case "RIGHT":
-        player.x -= PLAYER_WIDTH/2;
-        break;
-    case "LEFT":
-        player.x += PLAYER_WIDTH/2;
-        break;
-    default:
-        break;
+    if (!containPlayer() && !wallCollision()) {
+        player.x += player.vx * player.speed;
+        player.y += player.vy * player.speed;
     }
-    player.x += player.vx * player.speed;
-    player.y += player.vy * player.speed;
 
+    requestAnimationFrame(gameLoop);
     socket.emit('playerData', {'myPos':{'x':player.x, 'y':player.y},
                                'myScale': player.scale,
 							                 'myRotation': player.rotation});
