@@ -6,7 +6,10 @@ var Container = PIXI.Container,
     Rectangle = PIXI.Rectangle,
     TextureCache = PIXI.utils.TextureCache,
     Sprite = PIXI.Sprite,
-    Text = PIXI.Text;
+    Text = PIXI.Text,
+    EZcomponents = EZGUI.components,
+    EZcreate = EZGUI.create,
+    EZtheme = EZGUI.Theme;
 
 // use socket.io
 var socket = io.connect();
@@ -71,18 +74,17 @@ function setup() {
         up = keyboard(38),
         right = keyboard(39),
         down = keyboard(40),
-        space = keyboard(32);
+        space = keyboard(32),
+        enter = keyboard(13);
 
     for (var p in players) {
         newPlayer(p);
     }
 
-    var guiObj = {
-        id: 'myWindow',
+    var chatGUI = {
+        id: 'chatWindow',
 
         component: 'Window',
-
-        padding: 4,
 
         //component position relative to parent
         position: { x: 510, y: 10 },
@@ -91,40 +93,37 @@ function setup() {
         width: 280,
         height: 480,
 
-        layout:[1,3],
         children: [
             null,
             {
-                id: 'myInput',
+                id: 'input',
                 text: '',
                 component: 'Input',
-                position: 'center',
-                width: 150,
+                position: 'bottom left',
+                width: 140,
                 height: 50
             },
             {
-                id: 'btn1',
-                text: 'Get Text Value',
+                id: 'send',
+                text: 'Send',
                 component: 'Button',
-                position: 'center',
-                width: 150,
+                position: 'bottom right',
+                width: 140,
                 height: 50
             }
         ]
     };
 
 
-    EZGUI.Theme.load(['assets/kenney-theme/kenney-theme.json'], function () {
-
+    EZtheme.load(['assets/metalworks-theme/metalworks-theme.json'], function () {
 
         //create the gui
         //the second parameter is the theme name, see kenney-theme.json, the name is defined under __config__ field
-        var guiElt = EZGUI.create(guiObj, 'kenney');
+        var guiElt = EZGUI.create(chatGUI, 'metalworks');
 
-        EZGUI.components.btn1.on('click', function (event) {
-            alert(EZGUI.components.myInput.text);
+        EZcomponents.send.on('click', function (event) {
+            sendMessage(EZcomponents.input);
         });
-
 
         stage.addChild(guiElt);
 
@@ -188,6 +187,11 @@ function setup() {
         player.speed *= 2;
         player.speed *= 2;
         socket.emit('keyData', {'space': 'up'});
+    };
+
+    //enter
+    enter.press = function() {
+        sendMessage(EZcomponents.input);
     };
 
     renderer.render(stage);
@@ -369,6 +373,13 @@ function spawnPlayer() {
     stage.addChild(player);
 }
 
+function sendMessage(inputBox) {
+    if(inputBox.text !== "") {
+        socket.emit('sendMessage', {'message': EZcomponents.input.text});
+        inputBox.text = "";
+    }
+}
+
 gameLoop();
 function gameLoop() {
 
@@ -394,6 +405,10 @@ function gameLoop() {
 
     renderer.render(stage);
 }
+
+socket.on('displayMessages', function(data) {
+    console.log(data.messages);
+});
 
 socket.on('clientData', function(data) {
     clientData = data.clientData;

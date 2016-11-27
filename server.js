@@ -81,7 +81,14 @@ runServer(devState);
 
 // a list of all clients currently connected
 var clients = {};
+// the data that is sent to every connected client
 var clientData = {};
+// the messages to display to players
+var messages = {};
+// every message has a unique ID
+var messageId = 0;
+// total amount of messages to store
+var messageLimit = 10;
 
 var banData = "";
 var readFile = Promise.promisify(fs.readFile);
@@ -133,13 +140,20 @@ io.sockets.on('connection', function(socket) {
 		    player.rotation = data.myRotation;
     });
 
+    socket.on('sendMessage', function(data) {
+        messageId++;
+        messages[messageId] = data.message;
+
+        io.sockets.emit('displayMessages', {'messages': messages});
+    });
+
     // runs every 1000/60 milliseconds
     // sends all the clientdata to
     setInterval(function() {
         if (socket.id in clientData) {
             clientData[socket.id] = {'playerPos': player.position,
                                      'playerScale': player.scale,
-									 'playerRotation': player.rotation};
+									                   'playerRotation': player.rotation};
         }
         socket.emit('clientData', {'clientData': clientData});
     }, serverPostSpeed);
