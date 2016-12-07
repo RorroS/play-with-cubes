@@ -375,7 +375,9 @@ function spawnPlayer() {
 
 function sendMessage(inputBox) {
     if(inputBox.text !== "") {
-        socket.emit('sendMessage', {'message': EZcomponents.input.text});
+        var timestamp = new Date().getTime();
+        socket.emit('sendMessage', {'message': EZcomponents.input.text,
+                                    'timestamp': timestamp});
         inputBox.text = "";
     }
 }
@@ -406,8 +408,8 @@ function gameLoop() {
     renderer.render(stage);
 }
 
-socket.on('displayMessages', function(data) {
-    console.log(data.messages);
+socket.on('displayNewMessage', function(data) {
+    console.log(data.newMessage + " : " + data.newTimestamp);
 });
 
 socket.on('clientData', function(data) {

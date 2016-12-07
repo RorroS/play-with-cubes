@@ -84,11 +84,11 @@ var clients = {};
 // the data that is sent to every connected client
 var clientData = {};
 // the messages to display to players
-var messages = {};
+var messages = [];
 // every message has a unique ID
 var messageId = 0;
 // total amount of messages to store
-var messageLimit = 10;
+var MESSAGES_LIMIT = 10;
 
 var banData = "";
 var readFile = Promise.promisify(fs.readFile);
@@ -141,10 +141,17 @@ io.sockets.on('connection', function(socket) {
     });
 
     socket.on('sendMessage', function(data) {
-        messageId++;
-        messages[messageId] = data.message;
+        var newMessage = data.message;
+        var newTimestamp = data.timestamp;
+        messages.push({'id': messageId, 'message': newMessage, 'timestamp': newTimestamp});
 
-        io.sockets.emit('displayMessages', {'messages': messages});
+        if (messages[messages.length-1].id - messages[0].id > 10) {
+            messages.shift();
+        }
+        messageId++;
+
+        io.sockets.emit('displayNewMessage', {'newMessage': newMessage,
+                                              'newTimestamp': newTimestamp});
     });
 
     // runs every 1000/60 milliseconds
