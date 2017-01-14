@@ -19,6 +19,12 @@ var boardBackground;
 var WIDTH = 800, HEIGHT = 500;
 var PLAYER_WIDTH = 10, PLAYER_HEIGHT = 10;
 var WALL_HEIGHT = 10, WALL_WIDTH = 10;
+var MESSAGES_BORDER = {'startX': 510, 'startY': 10, 'endX': 790, 'endY':490};
+var MESSAGE_MARGIN = 10;
+var DISTANCE_BETWEEN_MESSAGES = 20;
+var messages = [];
+var messageObjects = [];
+var DISPLAY_MESSAGE_LIMIT = 21;
 var myId = "";
 var clientData = {};
 var players = {};
@@ -60,14 +66,6 @@ var wallTexture;
 function setup() {
     playerTexture = TextureCache["cube.png"];
     wallTexture = TextureCache["wall.png"];
-
-    // PIXI text
-    //var input = new PIXI.Input();
-    //input.x = 10;
-    //input.y = 10;
-    //console.log(input.value);
-    //stage.addChild(input);
-
 
     //Capture the keyboard arrow keys
     var left = keyboard(37),
@@ -375,11 +373,33 @@ function spawnPlayer() {
 
 function sendMessage(inputBox) {
     if(inputBox.text !== "") {
-        var timestamp = new Date().getTime();
-        socket.emit('sendMessage', {'message': EZcomponents.input.text,
-                                    'timestamp': timestamp});
+        socket.emit('sendMessage', {'message': EZcomponents.input.text});
         inputBox.text = "";
     }
+}
+
+function clearMessages() {
+    for (var i in messageObjects) {
+        messageObjects[i].visible = false;
+    }
+    renderer.render(stage);
+    messageObjects = [];
+}
+
+function displayMessages(messages) {
+    clearMessages();
+    for (var i in messages) {
+        var localMessageId = messages[messages.length-1].id - messages[i].id;
+        var messageToDisplay = new Text(messages[i].message, {font: "20px Arial"});
+
+        messageObjects.push(messageToDisplay);
+
+        messageToDisplay.position.set(MESSAGES_BORDER.startX + MESSAGE_MARGIN, MESSAGES_BORDER.startY + DISTANCE_BETWEEN_MESSAGES * localMessageId);
+
+        stage.addChild(messageToDisplay);
+    }
+
+    renderer.render(stage);
 }
 
 gameLoop();
@@ -401,15 +421,19 @@ function gameLoop() {
             players[p].y = clientData[p].playerPos.y;
             players[p].scale = clientData[p].playerScale;
             players[p].rotation = clientData[p].playerRotation;
-            renderer.render(stage);
         }
     }
-
     renderer.render(stage);
 }
 
 socket.on('displayNewMessage', function(data) {
-    console.log(data.newMessage + " : " + data.newTimestamp);
+    messages.push({'id': data.id,
+                   'message': data.newMessage,
+                   'timestamp': data.newTimestamp});
+    if (messages.length > DISPLAY_MESSAGE_LIMIT) {
+        messages.shift();
+    }
+    displayMessages(messages);
 });
 
 socket.on('clientData', function(data) {
@@ -431,7 +455,6 @@ socket.on('clientData', function(data) {
 
 socket.on('updateId', function(data) {
     myId = data.myId;
-    console.log("myID: " + myId);
 });
 
 socket.on("mapData", function(data) {

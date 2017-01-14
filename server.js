@@ -142,15 +142,16 @@ io.sockets.on('connection', function(socket) {
 
     socket.on('sendMessage', function(data) {
         var newMessage = data.message;
-        var newTimestamp = data.timestamp;
+        var newTimestamp = new Date().getTime();
         messages.push({'id': messageId, 'message': newMessage, 'timestamp': newTimestamp});
 
-        if (messages[messages.length-1].id - messages[0].id > 10) {
+        if (messages[messages.length-1].id - messages[0].id > MESSAGES_LIMIT) {
             messages.shift();
         }
         messageId++;
 
-        io.sockets.emit('displayNewMessage', {'newMessage': newMessage,
+        io.sockets.emit('displayNewMessage', {'id': messageId,
+                                              'newMessage': newMessage,
                                               'newTimestamp': newTimestamp});
     });
 
